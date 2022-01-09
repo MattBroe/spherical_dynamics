@@ -23,24 +23,25 @@ class SphericalPoint(object):
 
     def get_rotation_matrix(self):
         return self.__rotation_matrix
-
-    def is_north_pole(self):
-        return self.get_vector()[2] == 1
-
-    def is_south_pole(self):
-        return self.get_vector()[2] == -1
-
-    def is_north_or_south_pole(self):
-        return self.is_north_pole() or self.is_south_pole()
     
-    def __init__(self, unit_vec):
+    #Intended as private constructor...
+    def __init__(self, unit_vec, rotation_matrix):
         self.__vector = unit_vec
-        if self.is_north_or_south_pole():
-            return
+        self.__rotation_matrix = rotation_matrix
 
-        self.__rotation_matrix = gu.get_rotation_matrix(unit_vec)
+    basepoint = SphericalPoint(np.array([1, 0, 0]), gu.identity_matrix)
 
-    basepoint = SphericalPoint(np.array([1, 0, 0]))
+    def create_from_unit_vector(unit_vec):
+        if gu.is_north_or_south_pole(unit_vec):
+            return SphericalPoint(unit_vec, None)
+
+        rotation_matrix = gu.get_rotation_matrix(unit_vec)
+        return SphericalPoint(unit_vec, rotation_matrix)
+
+    def create_from_angles(xy_angle, xz_angle):
+        rotation_matrix = gu.rotate_xy(gu.get_xz_rotation_matrix(xz_angle), xy_angle)
+        vector = np.matmul(rotation_matrix, basepoint.get_vector())
+        return SphericalPoint()
 
     def evaluate_complex_function_as_tangent_vector(self, complex_func):
         rotation_matrix = self.get_rotation_matrix()
@@ -53,7 +54,4 @@ class SphericalPoint(object):
         func_value = complex_func(complex_proj)
         func_value_tangent_vector_at_basepoint = np.array([func_value.real, 0, func_value.imag])
         func_value_tangent_vector = parallel_transport(basepoint, self, func_value_tangent_vector_at_basepoint)
-
-
-
-
+        return func_value_tangent_vector

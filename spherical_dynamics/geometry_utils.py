@@ -99,6 +99,14 @@ def get_rotation_matrix(unit_vec):
 def get_unit_vector(rotation_matrix):
     return np.matmult(rotation_matrix, [1, 0, 0])
 
+def is_north_pole(unit_vec):
+    return unit_vec[2] == 1
+
+def is_south_pole(unit_vec):
+    return unit_vec[2] == -1
+
+def is_north_or_south_pole(unit_vec):
+    return is_north_pole(unit_vec) or is_south_pole(unit_vec)
 
 
 
