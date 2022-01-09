@@ -24,6 +24,9 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="geometry_utils.py" />
+    <Compile Include="SphericalPoint.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="spherical_dynamics.py" />
   </ItemGroup>
   <ItemGroup>

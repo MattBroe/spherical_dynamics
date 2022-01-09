@@ -1,6 +1,11 @@
 import numpy as np
 
 zero_vector = np.zeros(3)
+identity_matrix = np.array([
+    [1, 0, 0],
+    [0, 1, 0],
+    [0, 0, 1]
+])
 
 def vector_equals(vec1, vec2):
     return (
@@ -94,12 +99,6 @@ def get_rotation_matrix(unit_vec):
 def get_unit_vector(rotation_matrix):
     return np.matmult(rotation_matrix, [1, 0, 0])
 
-def parallel_transport(start_matrix, end_matrix, tangent_vec):
-    return np.matmul(end_matrix, np.matmul(np.linalg.inv(start_matrix), tangent_vec))
 
 
 
-    
-
-
-def parallel_transport:
