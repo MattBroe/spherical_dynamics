@@ -19,13 +19,15 @@ class PolynomialFlow(object):
     def get_perturbed_zeros(self):
         new_zeros = np.array(self.zeros)
         for i, zero1 in enumerate(self.zeros):
-            perturbation = np.complex(1 + 0j)
+            perturbation = self.perturb_step_size
             for j, zero2 in enumerate(self.zeros):
                 if i == j:
                     continue
-                perturbation *= (zero1 - zero2)
+                try:
+                    perturbation *= (zero1 - zero2)
+                except FloatingPointError as e:
+                    raise e
 
-            perturbation *= self.perturb_step_size
             new_zeros[i] = zero1 + perturbation
 
         return new_zeros

@@ -10,7 +10,7 @@ import time
 
 def main():
     np.seterr(all='raise')
-    resolution = 500
+    resolution = 40
     num_curves = 15
     curve_graphs = [
         c.CurveGraph(
@@ -22,8 +22,8 @@ def main():
         for n in np.arange(0, num_curves + 1)
     ]
 
-    zeros = np.array([1, -1])
-    poly_flow = f.PolynomialFlow(1j, zeros, .1)
+    zeros = np.array([2, 2j, 5 + 5j])
+    poly_flow = f.PolynomialFlow(1j, zeros, .01)
 
     def complex_func(z: complex) -> complex:
         try:
@@ -34,7 +34,7 @@ def main():
             if np.isinf(w) or w == 0:
                 return 0
 
-            w *= mu.bump(np.absolute(w/20))
+            w *= mu.bump(np.absolute(w / 20))
             w = w / (1 + np.absolute(w))
 
             return w
@@ -45,7 +45,7 @@ def main():
     figure = plt.figure()
     ax = plt.axes(projection='3d')
 
-    for _ in np.arange(0, 50):
+    for _ in np.arange(0, 500):
         plt.cla()
         for curve_graph in curve_graphs:
             for sphere_point, vec in curve_graph.get_points():
