@@ -1,5 +1,5 @@
 import numpy as np
-import SphericalPoint as sp
+import spherical_point as sp
 import geometry_utils as gu
 
 def get_latitude_circle(resolution, xy_angle):
