@@ -1,7 +1,7 @@
 import numpy as np
 
 
-def bump(x):
+def bump(x: float) -> float:
     if np.absolute(x) >= 1:
         return 0
 

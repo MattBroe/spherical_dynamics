@@ -3,7 +3,6 @@ import numpy as np
 
 
 def main():
-    breakpoint()
     x = np.float32(0)
 
     while True:
