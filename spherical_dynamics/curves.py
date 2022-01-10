@@ -15,4 +15,7 @@ def get_latitude_circle(resolution: int, xy_angle: float) -> npt.NDArray[sp.Sphe
 
 class CurveGraph(object):
     def __init__(self, points: npt.NDArray[Tuple[sp.SphericalPoint, npt.NDArray[float]]]):
-        self.points = points
+        self.__points = points
+
+    def get_points(self) -> npt.NDArray[Tuple[sp.SphericalPoint, npt.NDArray[float]]]:
+        return self.__points

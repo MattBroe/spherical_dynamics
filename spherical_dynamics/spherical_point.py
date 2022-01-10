@@ -49,7 +49,7 @@ class SphericalPoint(object):
         complex_proj = np.complex(proj[0], proj[1])
 
         func_value = complex_func(complex_proj)
-        func_value_tangent_vector_at_basepoint = np.array([func_value.real, 0, func_value.imag])
+        func_value_tangent_vector_at_basepoint = np.array([func_value.real, func_value.imag, 0])
         func_value_tangent_vector = parallel_transport(
             get_basepoint(),
             self,
