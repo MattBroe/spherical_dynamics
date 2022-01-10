@@ -13,6 +13,8 @@
     <Name>spherical_dynamics</Name>
     <RootNamespace>spherical_geometry</RootNamespace>
     <InterpreterId>MSBuild|spherical_dynamics|$(MSBuildProjectFullPath)</InterpreterId>
+    <LaunchProvider>Standard Python launcher</LaunchProvider>
+    <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -27,6 +29,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="geometry_utils.py" />
+    <Compile Include="math_utils.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="SphericalPoint.py">
       <SubType>Code</SubType>
     </Compile>
