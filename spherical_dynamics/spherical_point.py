@@ -45,10 +45,9 @@ class SphericalPoint(object):
         if parallel_transport_matrix is None:
             return gu.zero_vector  # TODO: replace with ValueError?
 
-        proj = gu.stereographic_project(self.get_vector())
-        complex_proj = np.complex(proj[0], proj[1])
+        proj = gu.stereographic_project_as_complex(self.get_vector())
 
-        func_value = complex_func(complex_proj)
+        func_value = complex_func(proj)
         func_value_tangent_vector_at_basepoint = np.array([func_value.real, func_value.imag, 0])
         func_value_tangent_vector = parallel_transport(
             get_basepoint(),

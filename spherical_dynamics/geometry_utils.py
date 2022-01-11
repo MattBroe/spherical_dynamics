@@ -97,12 +97,17 @@ def rotate_xz(matrix: npt.ArrayLike, angle: float) -> npt.ArrayLike:
     return np.matmul(rotation, matrix)
 
 
-def stereographic_project(unit_vec: npt.NDArray[float]):
+def stereographic_project(unit_vec: npt.NDArray[float]) -> npt.NDArray[float]:
     x, y, z = get_coordinates(unit_vec)
     if z == 1:
         return np.array([np.Inf, np.Inf, 0])
 
     return np.array([x / (1 - z), y / (1 - z), 0])
+
+
+def stereographic_project_as_complex(unit_vec: npt.NDArray[float]) -> complex:
+    x, y, *_ = stereographic_project(unit_vec)
+    return np.complex(x, y)
 
 
 __base_point_xy_angle = get_xy_angle(sphere_base_point)
@@ -119,7 +124,7 @@ def get_parallel_transport_matrix(unit_vec: npt.NDArray[float]) -> npt.NDArray[n
 
 
 def get_unit_vector(parallel_transport_matrix: npt.NDArray[npt.NDArray[float]]) -> npt.NDArray[float]:
-    return np.matmult(parallel_transport_matrix, sphere_base_point)
+    return np.matmul(parallel_transport_matrix, sphere_base_point)
 
 
 def is_north_pole(unit_vec: npt.NDArray[float]) -> bool:

@@ -13,12 +13,14 @@ class RationalFunctionFlow(object):
         self.zeros_with_orders = zeros_with_orders
 
     def evaluate(self, z: complex) -> complex:
-        val = 1
-        w = np.prod(np.array(
-            [self.lead_coefficient]
-            + [np.Inf if z == p and order < 0
-               else np.power(z - p, order)
-               for p, order in self.zeros_with_orders]
+        w = self.lead_coefficient
+        if np.isinf(z):
+            return w
+
+        w *= np.prod(np.array(
+           [np.Inf if z == p and order < 0
+            else np.power(z - p, order)
+            for p, order in self.zeros_with_orders]
         ))
         return cast(complex, w)
 
@@ -27,14 +29,16 @@ class RationalFunctionFlow(object):
         perturb_step_size: complex
     ) -> npt.NDArray[Tuple[complex, int]]:
         new_zeros = np.array(self.zeros_with_orders)
-        for i, zero1, order1 in enumerate(self.zeros_with_orders):
+        for i, zero_with_order1 in enumerate(self.zeros_with_orders):
+            zero1, order1 = zero_with_order1
             if np.absolute(order1) > 1:
                 continue
 
             perturbation = perturb_step_size * self.lead_coefficient
 
             try:
-                for j, zero2, order2 in enumerate(self.zeros_with_orders):
+                for j, zero_with_order2 in enumerate(self.zeros_with_orders):
+                    zero2, order2 = zero_with_order2
                     if i == j:
                         continue
 
@@ -44,7 +48,8 @@ class RationalFunctionFlow(object):
                     f"Floating point error while perturbing zero at {zero1}"
                     + f"with order {order1}: leaving this zero unchanged"
                 )
-                continue
+                print(self.zeros_with_orders)
+                raise e
 
             new_zeros[i] = zero1 + perturbation, order1
 
