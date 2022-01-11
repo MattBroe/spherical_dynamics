@@ -10,8 +10,8 @@ import time
 
 def main():
     np.seterr(all='raise')
-    resolution = 50
-    num_curves = 20
+    resolution = 150
+    num_curves = 60
     curve_graphs = [
         c.CurveGraph(
             np.array([
@@ -25,10 +25,12 @@ def main():
     def generate_zero():
         arg = np.random.uniform(0, 2 * np.pi)
         modulus = np.random.uniform(0, 1)
-        return modulus * np.exp(arg * 1j)
+        return np.exp(arg * 1j)
 
-    zeros = np.array([.5 * (-np.sqrt(3) + 1j), .5 * (-np.sqrt(3) - 1j)])
-    poly_flow = f.PolynomialFlow(1j, zeros, .01j)
+    first_zero = generate_zero()
+    second_zero = generate_zero()
+    zeros = np.array([first_zero, np.conj(first_zero), second_zero, np.conj(second_zero)])
+    poly_flow = f.RationalFunctionFlow(1j, zeros)
 
     def complex_func(z: complex) -> complex:
         try:
@@ -39,7 +41,7 @@ def main():
             if np.isinf(w) or w == 0:
                 return 0
 
-            w *= mu.bump(np.absolute(w / 5))
+            w *= mu.bump(np.absolute(w/60))
             w = w / (1 + np.absolute(w))
 
             return w
@@ -76,7 +78,7 @@ def main():
         # loop until all UI events
         # currently waiting have been processed
         figure.canvas.flush_events()
-        poly_flow.perturb()
+        poly_flow.perturb(.01)
 
     return
 
