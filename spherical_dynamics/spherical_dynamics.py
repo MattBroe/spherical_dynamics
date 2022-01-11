@@ -6,12 +6,13 @@ import geometry_utils as gu
 import curves as c
 import flow as f
 import random_utils as r
+from typing import Union
 import time
 
 
 def main():
     np.seterr(all='raise')
-    resolution = 150
+    resolution = 500
     num_curves = 50
     flow_step_size = .1
     rational_function_perturb_size = .01
@@ -43,16 +44,9 @@ def main():
 
     def complex_func(z: complex) -> complex:
         try:
-            w = rational_flow.evaluate(z)
-            if np.isinf(w) or w == 0:
-                return 0
-
-            w *= mu.bump(np.absolute(w/60))
-            w = w / (1 + np.absolute(w))
-
-            return w
+            return rational_flow.evaluate(z)
         except (OverflowError, ValueError, ZeroDivisionError, FloatingPointError):
-            return 0
+            return np.nan
 
     plt.ion()
     figure = plt.figure()
@@ -63,10 +57,10 @@ def main():
         for curve_graph in curve_graphs:
             for sphere_point, vec in curve_graph.get_points():
                 try:
-                    perturb_vector = sphere_point.evaluate_complex_function_as_tangent_vector(complex_func)
-
+                    perturb_vector = sphere_point.evaluate_complex_function_as_point_on_sphere(complex_func).get_vector()
                     for i, x in enumerate(vec):
-                        vec[i] = x + perturb_vector[i] * flow_step_size
+                        vec[i] = x + flow_step_size * perturb_vector[i]
+
                 except FloatingPointError:
                     continue
 

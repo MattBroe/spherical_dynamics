@@ -110,6 +110,20 @@ def stereographic_project_as_complex(unit_vec: npt.NDArray[float]) -> complex:
     return np.complex(x, y)
 
 
+def inverse_stereographic_project(z: complex) -> npt.NDArray[float]:
+    if np.isinf(z):
+        return np.array([0, 0, 1])
+
+    r_squared = np.power(np.absolute(z), 2)
+    a = z.real
+    b = z.imag
+    return np.array([
+        2 * a / (1 + r_squared),
+        2 * b / (1 + r_squared),
+        (-1 + r_squared) / (1 + r_squared)
+    ])
+
+
 __base_point_xy_angle = get_xy_angle(sphere_base_point)
 __base_point_xz_angle = get_xz_angle(sphere_base_point)
 

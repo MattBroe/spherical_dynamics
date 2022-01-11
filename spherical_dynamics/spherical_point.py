@@ -1,6 +1,6 @@
 import numpy as np
 import numpy.typing as npt
-from typing import Callable
+from typing import Callable, Union
 import geometry_utils as gu
 
 
@@ -40,7 +40,10 @@ class SphericalPoint(object):
         vector = np.matmul(parallel_transport_matrix, get_basepoint().get_vector())
         return SphericalPoint(vector, parallel_transport_matrix)
 
-    def evaluate_complex_function_as_tangent_vector(self, complex_func: Callable[[complex], complex]):
+    def evaluate_complex_function_as_tangent_vector(
+            self,
+            complex_func: Callable[[complex], complex]
+    ) -> npt.NDArray[float]:
         parallel_transport_matrix = self.get_parallel_transport_matrix()
         if parallel_transport_matrix is None:
             return gu.zero_vector  # TODO: replace with ValueError?
@@ -55,6 +58,18 @@ class SphericalPoint(object):
             func_value_tangent_vector_at_basepoint
         )
         return func_value_tangent_vector
+
+    def evaluate_complex_function_as_point_on_sphere(
+        self,
+        complex_func: Callable[[complex], complex]
+    ) -> Union[SphericalPoint, None]:
+        proj = gu.stereographic_project_as_complex(self.get_vector())
+        func_value = complex_func(proj)
+        if np.isnan(func_value) and not np.isinf(func_value):
+            return self
+
+        image_vector_on_sphere = gu.inverse_stereographic_project(func_value)
+        return SphericalPoint.create_from_unit_vector(image_vector_on_sphere)
 
 
 def parallel_transport(start_point: SphericalPoint, end_point: SphericalPoint, tangent_vec: npt.ArrayLike):
