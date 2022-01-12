@@ -12,10 +12,11 @@ import time
 
 def main():
     np.seterr(all='raise')
-    resolution = 500
+    resolution = 150
     num_curves = 50
     flow_step_size = .1
-    rational_function_perturb_size = .01
+    rational_function_zero_perturb_size = 50
+    rational_function_pole_perturb_size = 5
     curve_graphs = [
         c.CurveGraph(
             np.array([
@@ -75,13 +76,14 @@ def main():
                 [vec[2] for _, vec in curve_graph.get_points()]
             )
             ax.plot(xs, ys, zs)
+
         figure.canvas.draw()
 
         # This will run the GUI event
         # loop until all UI events
         # currently waiting have been processed
         figure.canvas.flush_events()
-        rational_flow.perturb(rational_function_perturb_size)
+        rational_flow.perturb(np.random.uniform(-1, 1), np.random.uniform(-1, 1))
 
     return
 

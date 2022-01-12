@@ -124,6 +124,47 @@ def inverse_stereographic_project(z: complex) -> npt.NDArray[float]:
     ])
 
 
+def get_stereographic_project_area_scaling(unit_vec: npt.NDArray[float]) -> float:
+    if is_north_pole(unit_vec):
+        return np.Inf
+
+    if is_south_pole(unit_vec):
+        return 0.25
+
+    proj = stereographic_project(unit_vec)
+    x, y, z = get_coordinates(unit_vec)
+    xy_length = get_length(np.array([x, y]))
+
+    # By symmetry it suffices to calculate the stereographic projection length
+    # scaling in case y = 0.
+    # In that case the stereographic projection is just (x / (1 - z)) + 0j,
+    # where x = cos(theta) and z = sin(theta). The length scaling along the
+    # radial direction is the derivative of this function (wrt theta),
+    # and along the polar direction it's just the factor of length scaling
+    # of stereographic projection along the circle given by
+    # intersecting the sphere with the plane through unit_vec
+    # orthogonal to the z axis. This is just |proj| / x.
+    stereographic_project_area_scaling = (
+            (np.absolute(proj) / xy_length)
+            * (xy_length + ((z - 1) * z)) / (np.pow(z - 1, 2))
+    )
+
+    return stereographic_project_area_scaling
+
+
+def get_inverse_stereographic_project_volume_scaling(w: complex) -> float:
+    if np.isinf(w):
+        return 0
+
+    if w == 0:
+        return 4
+
+    inverse_proj = inverse_stereographic_project(w)
+    stereographic_project_area_scaling = get_stereographic_project_area_scaling(inverse_proj)
+
+    return np.reciprocal(stereographic_project_area_scaling)
+
+
 __base_point_xy_angle = get_xy_angle(sphere_base_point)
 __base_point_xz_angle = get_xz_angle(sphere_base_point)
 

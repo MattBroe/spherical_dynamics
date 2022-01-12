@@ -26,14 +26,16 @@ class RationalFunctionFlow(object):
 
     def get_perturbed_zeros_with_orders(
         self,
-        perturb_step_size: complex
+        zero_perturb_step_size: complex,
+        pole_perturb_step_size: complex
     ) -> npt.NDArray[Tuple[complex, int]]:
-        new_zeros = np.array(self.zeros_with_orders)
+        new_zeros = np.copy(self.zeros_with_orders)
         for i, zero_with_order1 in enumerate(self.zeros_with_orders):
             zero1, order1 = zero_with_order1
             if np.absolute(order1) > 1:
                 continue
 
+            perturb_step_size = zero_perturb_step_size if order1 >= 0 else pole_perturb_step_size
             perturbation = perturb_step_size * self.lead_coefficient
 
             try:
@@ -41,8 +43,9 @@ class RationalFunctionFlow(object):
                     zero2, order2 = zero_with_order2
                     if i == j:
                         continue
-
-                    perturbation *= np.power(zero1 - zero2, order2)
+                    difference = zero1 - zero2
+                    scale_factor = np.power(difference, order2)
+                    perturbation *= scale_factor
             except FloatingPointError as e:
                 print(
                     f"Floating point error while perturbing zero at {zero1}"
@@ -55,5 +58,8 @@ class RationalFunctionFlow(object):
 
         return new_zeros
 
-    def perturb(self, perturb_step_size: complex) -> None:
-        self.zeros_with_orders = self.get_perturbed_zeros_with_orders(perturb_step_size)
+    def perturb(self, zero_perturb_step_size: complex, pole_perturb_step_size: complex) -> None:
+        print(f"Start zeros: {self.zeros_with_orders}")
+        perturbed_zeros = self.get_perturbed_zeros_with_orders(zero_perturb_step_size, pole_perturb_step_size)
+        print(f"Perturbed zeros: {perturbed_zeros}")
+        self.zeros_with_orders = perturbed_zeros
