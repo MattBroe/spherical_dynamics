@@ -12,11 +12,10 @@ import time
 
 def main():
     np.seterr(all='raise')
-    resolution = 150
-    num_curves = 50
+    resolution = 300
+    num_curves = 20
     flow_step_size = .1
-    rational_function_zero_perturb_size = 50
-    rational_function_pole_perturb_size = 5
+    zero_perturb_size = 1
     curve_graphs = [
         c.CurveGraph(
             np.array([
@@ -41,7 +40,7 @@ def main():
     ])
     print(f"Zeros with orders: {zeros_with_orders}")
 
-    rational_flow = f.RationalFunctionFlow(1j, zeros_with_orders)
+    rational_flow = f.RationalFunctionFlow(1, zeros_with_orders)
 
     def complex_func(z: complex) -> complex:
         try:
@@ -53,14 +52,14 @@ def main():
     figure = plt.figure()
     ax = plt.axes(projection='3d')
 
-    for _ in np.arange(0, 500):
+    for idx in np.arange(0, 500):
         plt.cla()
         for curve_graph in curve_graphs:
             for sphere_point, vec in curve_graph.get_points():
                 try:
                     perturb_vector = sphere_point.evaluate_complex_function_as_point_on_sphere(complex_func).get_vector()
                     for i, x in enumerate(vec):
-                        vec[i] = x + flow_step_size * perturb_vector[i]
+                        vec[i] = (1 - flow_step_size) * x + flow_step_size * perturb_vector[i]
 
                 except FloatingPointError:
                     continue
@@ -83,7 +82,11 @@ def main():
         # loop until all UI events
         # currently waiting have been processed
         figure.canvas.flush_events()
-        rational_flow.perturb(np.random.uniform(-1, 1), np.random.uniform(-1, 1))
+        zero_perturbation = r.get_uniform_complex_in_disc(zero_perturb_size)
+        rational_flow.perturb(
+            zero_perturbation,
+            zero_perturbation
+        )
 
     return
 

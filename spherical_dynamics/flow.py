@@ -1,6 +1,7 @@
 import numpy as np
 import numpy.typing as npt
 from typing import Tuple, cast
+import geometry_utils as gu
 
 
 class RationalFunctionFlow(object):
@@ -35,9 +36,15 @@ class RationalFunctionFlow(object):
             if np.absolute(order1) > 1:
                 continue
 
-            perturb_step_size = zero_perturb_step_size if order1 >= 0 else pole_perturb_step_size
+            perturb_step_size = (zero_perturb_step_size
+                                 if order1 >= 0
+                                 else pole_perturb_step_size)
+            # Without this factor everything will suck up into the north pole
+            # when we work on the unit sphere...
+            sphere_area_scaling = gu.get_inverse_stereographic_project_volume_scaling(
+                zero1
+            )
             perturbation = perturb_step_size * self.lead_coefficient
-
             try:
                 for j, zero_with_order2 in enumerate(self.zeros_with_orders):
                     zero2, order2 = zero_with_order2
@@ -54,7 +61,13 @@ class RationalFunctionFlow(object):
                 print(self.zeros_with_orders)
                 raise e
 
-            new_zeros[i] = zero1 + perturbation, order1
+            new_zero_estimate = zero1 + perturbation
+            # Without this factor everything will suck up into the north pole
+            # when we work on the unit sphere...
+            sphere_area_scaling = gu.get_inverse_stereographic_project_volume_scaling(
+                new_zero_estimate
+            )
+            new_zeros[i] = zero1 + perturbation * sphere_area_scaling, order1
 
         return new_zeros
 

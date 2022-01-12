@@ -19,18 +19,18 @@ class SphericalPoint(object):
     # to p (along a geodesic). Obviously not uniquely defined at antipode...
 
     # Intended as private constructor...
-    def __init__(self, unit_vec: npt.ArrayLike, parallel_transport_matrix: npt.ArrayLike):
+    def __init__(self, unit_vec: npt.NDArray[float], parallel_transport_matrix: npt.ArrayLike):
         self.__vector = unit_vec
         self.__parallel_transport_matrix = parallel_transport_matrix
 
-    def get_vector(self) -> npt.ArrayLike:
-        return self.__vector
+    def get_vector(self) -> npt.NDArray[float]:
+        return np.copy(self.__vector)
 
     def get_parallel_transport_matrix(self) -> npt.ArrayLike:
-        return self.__parallel_transport_matrix
+        return np.copy(self.__parallel_transport_matrix)
 
     @staticmethod
-    def create_from_unit_vector(unit_vec: npt.ArrayLike) -> SphericalPoint:
+    def create_from_unit_vector(unit_vec: npt.NDArray[float]) -> SphericalPoint:
         parallel_transport_matrix = gu.get_parallel_transport_matrix(unit_vec)
         return SphericalPoint(unit_vec, parallel_transport_matrix)
 

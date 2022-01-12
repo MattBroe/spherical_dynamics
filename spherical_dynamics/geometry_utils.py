@@ -131,7 +131,7 @@ def get_stereographic_project_area_scaling(unit_vec: npt.NDArray[float]) -> floa
     if is_south_pole(unit_vec):
         return 0.25
 
-    proj = stereographic_project(unit_vec)
+    proj = stereographic_project_as_complex(unit_vec)
     x, y, z = get_coordinates(unit_vec)
     xy_length = get_length(np.array([x, y]))
 
@@ -146,7 +146,7 @@ def get_stereographic_project_area_scaling(unit_vec: npt.NDArray[float]) -> floa
     # orthogonal to the z axis. This is just |proj| / x.
     stereographic_project_area_scaling = (
             (np.absolute(proj) / xy_length)
-            * (xy_length + ((z - 1) * z)) / (np.pow(z - 1, 2))
+            * (xy_length + ((z - 1) * z)) / (np.power(z - 1, 2))
     )
 
     return stereographic_project_area_scaling
@@ -161,8 +161,10 @@ def get_inverse_stereographic_project_volume_scaling(w: complex) -> float:
 
     inverse_proj = inverse_stereographic_project(w)
     stereographic_project_area_scaling = get_stereographic_project_area_scaling(inverse_proj)
-
-    return np.reciprocal(stereographic_project_area_scaling)
+    try:
+        return np.reciprocal(stereographic_project_area_scaling)
+    except FloatingPointError as e:
+        raise e
 
 
 __base_point_xy_angle = get_xy_angle(sphere_base_point)
