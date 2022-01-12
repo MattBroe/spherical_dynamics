@@ -14,8 +14,8 @@ def main():
     np.seterr(all='raise')
     resolution = 300
     num_curves = 12
-    flow_step_size = .1
-    zero_perturb_size = .25
+    flow_step_size = .05
+    zero_perturb_size = .6
     curve_graphs = [
         c.CurveGraph(
             np.array([
@@ -35,8 +35,10 @@ def main():
     zeros_with_orders = np.array([
         (generate_zero(), 1),
         (generate_zero(), 1),
+        (generate_zero(), 1),
         (generate_zero(), -1),
-        (generate_zero(), -1)
+        (generate_zero(), -1),
+        (generate_zero(), -1),
     ])
     print(f"Zeros with orders: {zeros_with_orders}")
 

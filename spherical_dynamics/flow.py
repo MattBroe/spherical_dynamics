@@ -2,6 +2,7 @@ import numpy as np
 import numpy.typing as npt
 from typing import Tuple, cast
 import geometry_utils as gu
+import random_utils as r
 
 
 class RationalFunctionFlow(object):
@@ -48,22 +49,24 @@ class RationalFunctionFlow(object):
             sphere_area_scaling = gu.get_inverse_stereographic_project_area_scaling(
                 zero1
             )
-            perturbation = perturb_step_size * self.lead_coefficient
-            try:
-                for j, zero_with_order2 in enumerate(self.zeros_with_orders):
-                    zero2, order2 = zero_with_order2
-                    if i == j:
-                        continue
-                    difference = zero1 - zero2
-                    scale_factor = np.power(difference, order2)
-                    perturbation *= scale_factor
-            except FloatingPointError as e:
-                print(
-                    f"Floating point error while perturbing zero at {zero1}"
-                    + f"with order {order1}: leaving this zero unchanged"
-                )
-                print(self.zeros_with_orders)
-                raise e
+            inverse_stereo = gu.inverse_stereographic_project(zero1)
+            perturbation = perturb_step_size * r.get_uniform_complex_on_unit_circle()
+            new_inverse_stereo = gu.rotate_xy(gu.rotate_xz(inverse_stereo, perturbation.real), perturbation.imag)
+            # try:
+            #     for j, zero_with_order2 in enumerate(self.zeros_with_orders):
+            #         zero2, order2 = zero_with_order2
+            #         if i == j:
+            #             continue
+            #         difference = zero1 - zero2
+            #         scale_factor = np.power(difference, order2)
+            #         perturbation *= scale_factor
+            # except FloatingPointError as e:
+            #     print(
+            #         f"Floating point error while perturbing zero at {zero1}"
+            #         + f"with order {order1}: leaving this zero unchanged"
+            #     )
+            #     print(self.zeros_with_orders)
+            #     raise e
 
             # Without this factor everything will suck up into the north pole
             # when we work on the unit sphere...
@@ -73,7 +76,7 @@ class RationalFunctionFlow(object):
                 perturbation
             )
             print(f"Zero: {zero1} Perturbation: {perturbation} Sphere scaling: {sphere_area_scaling}")
-            new_zeros[i] = zero1 + perturbation * sphere_area_scaling, order1
+            new_zeros[i] = gu.stereographic_project_as_complex(new_inverse_stereo), order1
 
         return new_zeros
 
