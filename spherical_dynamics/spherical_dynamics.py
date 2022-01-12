@@ -13,9 +13,9 @@ import time
 def main():
     np.seterr(all='raise')
     resolution = 300
-    num_curves = 20
+    num_curves = 12
     flow_step_size = .1
-    zero_perturb_size = 1
+    zero_perturb_size = .25
     curve_graphs = [
         c.CurveGraph(
             np.array([
@@ -59,7 +59,7 @@ def main():
                 try:
                     perturb_vector = sphere_point.evaluate_complex_function_as_point_on_sphere(complex_func).get_vector()
                     for i, x in enumerate(vec):
-                        vec[i] = (1 - flow_step_size) * x + flow_step_size * perturb_vector[i]
+                        vec[i] = x + flow_step_size * perturb_vector[i]
 
                 except FloatingPointError:
                     continue
@@ -76,12 +76,21 @@ def main():
             )
             ax.plot(xs, ys, zs)
 
+        for i, zero_with_order in enumerate(rational_flow.get_zeros_with_orders()):
+            zero, order = zero_with_order
+            zero_on_sphere = gu.inverse_stereographic_project(zero)
+            zero_x, zero_y, zero_z = gu.get_coordinates(zero_on_sphere)
+            ax.plot([zero_x], [zero_y], [zero_z])
+            ax.text(zero_x, zero_y, zero_z, f"z{i}:{order}", "x")
+
+
         figure.canvas.draw()
 
         # This will run the GUI event
         # loop until all UI events
         # currently waiting have been processed
         figure.canvas.flush_events()
+
         zero_perturbation = r.get_uniform_complex_in_disc(zero_perturb_size)
         rational_flow.perturb(
             zero_perturbation,

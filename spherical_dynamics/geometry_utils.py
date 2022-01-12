@@ -97,6 +97,18 @@ def rotate_xz(matrix: npt.ArrayLike, angle: float) -> npt.ArrayLike:
     return np.matmul(rotation, matrix)
 
 
+def get_tangential_component(axis: complex, w: complex) -> complex:
+    if axis == 0:
+        raise ValueError("Axis cannot be zero")
+
+    direction = axis / np.absolute(axis)
+    return ((w.real * direction.real) + (w.imag * direction.imag)) * direction
+
+
+def get_orthogonal_component(axis: complex, w: complex) -> complex:
+    return w - get_tangential_component(axis, w)
+
+
 def stereographic_project(unit_vec: npt.NDArray[float]) -> npt.NDArray[float]:
     x, y, z = get_coordinates(unit_vec)
     if z == 1:
@@ -124,47 +136,91 @@ def inverse_stereographic_project(z: complex) -> npt.NDArray[float]:
     ])
 
 
-def get_stereographic_project_area_scaling(unit_vec: npt.NDArray[float]) -> float:
+# By symmetry it suffices to calculate the stereographic projection length
+# scaling in case y = 0.
+# In that case the stereographic projection is just (x / (1 - z)) + 0j,
+# where x = cos(theta) and z = sin(theta). The length scaling along the
+# radial direction is the derivative of this function (wrt theta),
+# and along the polar direction it's just the factor of length scaling
+# of stereographic projection along the circle given by
+# intersecting the sphere with the plane through unit_vec
+# orthogonal to the z axis. This is just |proj| / x.
+
+
+def get_stereographic_proj_radial_length_scaling(unit_vec: npt.NDArray[float]) -> float:
     if is_north_pole(unit_vec):
         return np.Inf
 
     if is_south_pole(unit_vec):
-        return 0.25
+        return 0.5
 
-    proj = stereographic_project_as_complex(unit_vec)
     x, y, z = get_coordinates(unit_vec)
     xy_length = get_length(np.array([x, y]))
 
-    # By symmetry it suffices to calculate the stereographic projection length
-    # scaling in case y = 0.
-    # In that case the stereographic projection is just (x / (1 - z)) + 0j,
-    # where x = cos(theta) and z = sin(theta). The length scaling along the
-    # radial direction is the derivative of this function (wrt theta),
-    # and along the polar direction it's just the factor of length scaling
-    # of stereographic projection along the circle given by
-    # intersecting the sphere with the plane through unit_vec
-    # orthogonal to the z axis. This is just |proj| / x.
-    stereographic_project_area_scaling = (
-            (np.absolute(proj) / xy_length)
-            * (xy_length + ((z - 1) * z)) / (np.power(z - 1, 2))
+    radial_length_scaling = (xy_length + ((z - 1) * z)) / (np.power(z - 1, 2))
+
+    return radial_length_scaling
+
+
+def get_stereographic_proj_polar_length_scaling(unit_vec: npt.NDArray[float]) -> float:
+    if is_north_pole(unit_vec):
+        return np.Inf
+
+    if is_south_pole(unit_vec):
+        return 0.5
+
+    x, y, z = get_coordinates(unit_vec)
+    xy_length = get_length(np.array([x, y]))
+    proj = stereographic_project_as_complex(unit_vec)
+
+    polar_length_scaling =  np.absolute(proj) / xy_length
+
+    return polar_length_scaling
+
+
+def get_stereographic_project_area_scaling(unit_vec: npt.NDArray[float]) -> float:
+    polar_length_scaling = get_stereographic_proj_polar_length_scaling(unit_vec)
+    radial_length_scaling = get_stereographic_proj_radial_length_scaling(unit_vec)
+    return polar_length_scaling * radial_length_scaling
+
+
+def get_inverse_stereographic_project_length_scaling(
+    z: complex,
+    direction: complex
+):
+    if direction == 0:
+        return 0
+    tangential_component = get_tangential_component(z, direction)
+    orthogonal_component = get_orthogonal_component(z, direction)
+    inverse_proj = inverse_stereographic_project(z)
+
+    tangential_component_points_in_same_direction = np.absolute(
+        z + tangential_component
+    ) >= np.absolute(z)
+
+    stereo_radial_scaling = get_stereographic_proj_radial_length_scaling(inverse_proj)
+    radial_scaling_factor = (
+        np.reciprocal(stereo_radial_scaling)
+        if tangential_component_points_in_same_direction
+        else stereo_radial_scaling
+    )
+    radial_scaling = np.absolute(
+        tangential_component * radial_scaling_factor
     )
 
-    return stereographic_project_area_scaling
+    polar_scaling = np.absolute(
+        orthogonal_component
+        / get_stereographic_proj_polar_length_scaling(inverse_proj)
+    )
+    return (radial_scaling + polar_scaling) / np.absolute(direction)
 
 
-def get_inverse_stereographic_project_volume_scaling(w: complex) -> float:
-    if np.isinf(w):
-        return 0
 
-    if w == 0:
-        return 4
 
+def get_inverse_stereographic_project_area_scaling(w: complex) -> float:
     inverse_proj = inverse_stereographic_project(w)
     stereographic_project_area_scaling = get_stereographic_project_area_scaling(inverse_proj)
-    try:
-        return np.reciprocal(stereographic_project_area_scaling)
-    except FloatingPointError as e:
-        raise e
+    return np.reciprocal(stereographic_project_area_scaling)
 
 
 __base_point_xy_angle = get_xy_angle(sphere_base_point)

@@ -13,6 +13,10 @@ class RationalFunctionFlow(object):
         self.lead_coefficient = lead_coefficient
         self.zeros_with_orders = zeros_with_orders
 
+
+    def get_zeros_with_orders(self):
+        return np.copy(self.zeros_with_orders)
+
     def evaluate(self, z: complex) -> complex:
         w = self.lead_coefficient
         if np.isinf(z):
@@ -41,7 +45,7 @@ class RationalFunctionFlow(object):
                                  else pole_perturb_step_size)
             # Without this factor everything will suck up into the north pole
             # when we work on the unit sphere...
-            sphere_area_scaling = gu.get_inverse_stereographic_project_volume_scaling(
+            sphere_area_scaling = gu.get_inverse_stereographic_project_area_scaling(
                 zero1
             )
             perturbation = perturb_step_size * self.lead_coefficient
@@ -61,12 +65,14 @@ class RationalFunctionFlow(object):
                 print(self.zeros_with_orders)
                 raise e
 
-            new_zero_estimate = zero1 + perturbation
             # Without this factor everything will suck up into the north pole
             # when we work on the unit sphere...
-            sphere_area_scaling = gu.get_inverse_stereographic_project_volume_scaling(
-                new_zero_estimate
+
+            sphere_area_scaling = gu.get_inverse_stereographic_project_length_scaling(
+                zero1,
+                perturbation
             )
+            print(f"Zero: {zero1} Perturbation: {perturbation} Sphere scaling: {sphere_area_scaling}")
             new_zeros[i] = zero1 + perturbation * sphere_area_scaling, order1
 
         return new_zeros
