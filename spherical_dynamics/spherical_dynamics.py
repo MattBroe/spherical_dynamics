@@ -81,7 +81,7 @@ def main():
         xmin, xmax = ax.get_xlim()
         ymin, ymax = ax.get_ylim()
         zmin, zmax = ax.get_zlim()
-        reverse = (idx // (config.num_iterations // 4)) % 2 == 0
+        reverse = (idx // (config.num_iterations // 10)) % 2 == 0
         for curve_graph_idx, curve_graph in enumerate(curve_graphs):
             for sphere_point, vec in curve_graph.get_points():
                 new_vec = np.empty(len(vec))

@@ -37,6 +37,15 @@ class RationalFunctionFlow(object):
         ))
         return cast(complex, w)
 
+    def get_perturbed_lead_coefficient(
+        self,
+        get_perturbation: Callable[[], complex]
+    ):
+        inverse_stereo = gu.inverse_stereographic_project(self.lead_coefficient)
+        perturbation = get_perturbation()
+        new_inverse_stereo = gu.rotate_xy(gu.rotate_xz(inverse_stereo, perturbation.real), perturbation.imag)
+        return gu.stereographic_project_as_complex(new_inverse_stereo)
+
     def get_perturbed_zeros_with_orders(
         self,
         get_perturbation: Callable[[], complex]
@@ -55,8 +64,20 @@ class RationalFunctionFlow(object):
 
         return new_zeros
 
-    def perturb(self, get_perturbation: Callable[[], complex]) -> None:
+    def perturb(
+        self,
+        get_perturbation: Callable[[], complex],
+        get_lead_coefficient_perturbation: Callable[[], complex],
+    ) -> None:
         print(f"Start zeros: {self.zeros_with_orders}")
         perturbed_zeros = self.get_perturbed_zeros_with_orders(get_perturbation)
         print(f"Perturbed zeros: {perturbed_zeros}")
         self.zeros_with_orders = perturbed_zeros
+
+        # TODO: find a good way to handle infinity. It needs to not just be a fixed point...
+        # perturbed_lead_coefficient = self.get_perturbed_lead_coefficient(get_perturbation)
+        # # if perturbed_lead_coefficient != 0:
+        # #     perturbed_lead_coefficient /= np.absolute(perturbed_lead_coefficient)
+        # #     perturbed_lead_coefficient *= np.absolute(self.lead_coefficient)
+        #
+        # self.lead_coefficient = perturbed_lead_coefficient
