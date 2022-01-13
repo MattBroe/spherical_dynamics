@@ -1,6 +1,6 @@
 import numpy as np
 import numpy.typing as npt
-from typing import Tuple, cast
+from typing import Tuple, cast, Callable
 import geometry_utils as gu
 import random_utils as r
 
@@ -14,13 +14,20 @@ class RationalFunctionFlow(object):
         self.lead_coefficient = lead_coefficient
         self.zeros_with_orders = zeros_with_orders
 
-
     def get_zeros_with_orders(self):
         return np.copy(self.zeros_with_orders)
+
+    def get_degree(self):
+        return sum([zero_with_order[1] for zero_with_order in self.zeros_with_orders])
 
     def evaluate(self, z: complex) -> complex:
         w = self.lead_coefficient
         if np.isinf(z):
+            degree = self.get_degree()
+            if degree > 0:
+                return z
+            if degree < 0:
+                return 0
             return w
 
         w *= np.prod(np.array(
@@ -32,8 +39,7 @@ class RationalFunctionFlow(object):
 
     def get_perturbed_zeros_with_orders(
         self,
-        zero_perturb_step_size: complex,
-        pole_perturb_step_size: complex
+        get_perturbation: Callable[[], complex]
     ) -> npt.NDArray[Tuple[complex, int]]:
         new_zeros = np.copy(self.zeros_with_orders)
         for i, zero_with_order1 in enumerate(self.zeros_with_orders):
@@ -41,47 +47,16 @@ class RationalFunctionFlow(object):
             if np.absolute(order1) > 1:
                 continue
 
-            perturb_step_size = (zero_perturb_step_size
-                                 if order1 >= 0
-                                 else pole_perturb_step_size)
-            # Without this factor everything will suck up into the north pole
-            # when we work on the unit sphere...
-            sphere_area_scaling = gu.get_inverse_stereographic_project_area_scaling(
-                zero1
-            )
             inverse_stereo = gu.inverse_stereographic_project(zero1)
-            perturbation = perturb_step_size * r.get_uniform_complex_on_unit_circle()
+            perturbation = get_perturbation()
             new_inverse_stereo = gu.rotate_xy(gu.rotate_xz(inverse_stereo, perturbation.real), perturbation.imag)
-            # try:
-            #     for j, zero_with_order2 in enumerate(self.zeros_with_orders):
-            #         zero2, order2 = zero_with_order2
-            #         if i == j:
-            #             continue
-            #         difference = zero1 - zero2
-            #         scale_factor = np.power(difference, order2)
-            #         perturbation *= scale_factor
-            # except FloatingPointError as e:
-            #     print(
-            #         f"Floating point error while perturbing zero at {zero1}"
-            #         + f"with order {order1}: leaving this zero unchanged"
-            #     )
-            #     print(self.zeros_with_orders)
-            #     raise e
-
-            # Without this factor everything will suck up into the north pole
-            # when we work on the unit sphere...
-
-            sphere_area_scaling = gu.get_inverse_stereographic_project_length_scaling(
-                zero1,
-                perturbation
-            )
-            print(f"Zero: {zero1} Perturbation: {perturbation} Sphere scaling: {sphere_area_scaling}")
+            print(f"Zero: {zero1} Perturbation: {perturbation}")
             new_zeros[i] = gu.stereographic_project_as_complex(new_inverse_stereo), order1
 
         return new_zeros
 
-    def perturb(self, zero_perturb_step_size: complex, pole_perturb_step_size: complex) -> None:
+    def perturb(self, get_perturbation: Callable[[], complex]) -> None:
         print(f"Start zeros: {self.zeros_with_orders}")
-        perturbed_zeros = self.get_perturbed_zeros_with_orders(zero_perturb_step_size, pole_perturb_step_size)
+        perturbed_zeros = self.get_perturbed_zeros_with_orders(get_perturbation)
         print(f"Perturbed zeros: {perturbed_zeros}")
         self.zeros_with_orders = perturbed_zeros
