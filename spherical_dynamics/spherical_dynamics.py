@@ -13,14 +13,16 @@ import time
 
 class Configuration(object):
     def __init__(
-            self,
-            resolution: int,
-            num_curves: int,
-            flow_step_size: float,
-            zero_perturb_size: float,
-            zero_jump_probability: float,
-            seed: int
+        self,
+        num_iterations: int,
+        resolution: int,
+        num_curves: int,
+        flow_step_size: float,
+        zero_perturb_size: float,
+        zero_jump_probability: float,
+        seed: int
     ):
+        self.num_iterations = num_iterations
         self.resolution = resolution
         self.num_curves = num_curves
         self.flow_step_size = flow_step_size
@@ -34,7 +36,7 @@ class Configuration(object):
 
 def main():
     np.seterr(all='raise')
-    config = Configuration(100, 6, .05, .1, .2, np.random.randint(0, 2 ** 31 - 1))
+    config = Configuration(500, 100, 20, .05, .1, .02, np.random.randint(0, 2 ** 31 - 1))
     print(f"Config: {config}")
 
     curve_graphs = [
@@ -72,14 +74,19 @@ def main():
     figure = plt.figure()
     ax = plt.axes(projection='3d')
 
-    for _ in np.arange(0, 500):
+    for idx in np.arange(0, config.num_iterations):
         plt.cla()
+        reverse = (idx // (config.num_iterations // 20)) % 2 == 1
         for curve_graph in curve_graphs:
             for sphere_point, vec in curve_graph.get_points():
                 new_vec = np.empty(len(vec))
                 try:
                     perturb_vector = sphere_point.evaluate_complex_function_as_point_on_sphere(
-                        complex_func).get_vector()
+                        complex_func
+                    ).get_vector()
+                    if reverse:
+                        perturb_vector *= -1
+
                     for i, x in enumerate(vec):
                         new_vec[i] = x + config.flow_step_size * perturb_vector[i]
 
