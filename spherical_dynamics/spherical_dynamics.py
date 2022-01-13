@@ -36,8 +36,9 @@ class Configuration(object):
 
 def main():
     np.seterr(all='raise')
-    config = Configuration(500, 100, 14, .05, .1, .06, np.random.randint(0, 2 ** 31 - 1))
+    config = Configuration(500, 80, 25, .1, .01, .06, np.random.randint(0, 2**31 - 1))
     print(f"Config: {config}")
+    np.random.seed(config.seed)
 
     curve_graphs = [
         c.CurveGraph(
@@ -56,8 +57,8 @@ def main():
         return w
 
     zeros_with_orders = np.array(
-        ([(generate_zero(), 1) for _ in np.arange(0, 7)]
-         + [(generate_zero(), -1) for _ in np.arange(0, 7)])
+        ([(generate_zero(), 1) for _ in np.arange(0, 10)]
+         + [(generate_zero(), -1) for _ in np.arange(0, 8)])
     )
     print(f"Zeros with orders: {zeros_with_orders}")
 
@@ -67,7 +68,8 @@ def main():
     def complex_func(z: complex) -> complex:
         try:
             return rational_flow.evaluate(z)
-        except (OverflowError, ValueError, ZeroDivisionError, FloatingPointError):
+        except (OverflowError, ValueError, ZeroDivisionError, FloatingPointError) as e:
+            print(e)
             return np.inf
 
     plt.ion()
@@ -95,7 +97,8 @@ def main():
                     for i, x in enumerate(vec):
                         new_vec[i] = x + config.flow_step_size * perturb_vector[i]
 
-                except FloatingPointError:
+                except FloatingPointError as e:
+                    print(e)
                     continue
 
                 for i, y in enumerate(new_vec):
@@ -110,10 +113,10 @@ def main():
             ax.plot(xs, ys, zs, color)
 
         # for i, zero_with_order in enumerate(rational_flow.get_zeros_with_orders()):
-        #     zero, order = zero_with_order
-        #     zero_on_sphere = gu.inverse_stereographic_project(zero)
-        #     zero_x, zero_y, zero_z = gu.get_coordinates(zero_on_sphere)
-        #     ax.plot([zero_x], [zero_y], [zero_z])
+        #         #     zero, order = zero_with_order
+        #         #     zero_on_sphere = gu.inverse_stereographic_project(zero)
+        #         #     zero_x, zero_y, zero_z = gu.get_coordinates(zero_on_sphere)
+        #         #     ax.plot([zero_x], [zero_y], [zero_z])
         #     ax.text(zero_x, zero_y, zero_z, f"z{i}:{int(order)}", "x")
 
         ax.view_init(elev, azim)
@@ -129,6 +132,7 @@ def main():
         figure.canvas.flush_events()
 
         rational_flow.perturb(
+            perturb_gen.get_perturbation,
             perturb_gen.get_perturbation
         )
 

@@ -75,9 +75,9 @@ class RationalFunctionFlow(object):
         self.zeros_with_orders = perturbed_zeros
 
         # TODO: find a good way to handle infinity. It needs to not just be a fixed point...
-        # perturbed_lead_coefficient = self.get_perturbed_lead_coefficient(get_perturbation)
-        # # if perturbed_lead_coefficient != 0:
-        # #     perturbed_lead_coefficient /= np.absolute(perturbed_lead_coefficient)
-        # #     perturbed_lead_coefficient *= np.absolute(self.lead_coefficient)
-        #
-        # self.lead_coefficient = perturbed_lead_coefficient
+        perturbed_lead_coefficient = self.get_perturbed_lead_coefficient(get_perturbation)
+        # if perturbed_lead_coefficient != 0:
+        #     perturbed_lead_coefficient /= np.absolute(perturbed_lead_coefficient)
+        #     perturbed_lead_coefficient *= np.absolute(self.lead_coefficient)
+
+        self.lead_coefficient = perturbed_lead_coefficient
