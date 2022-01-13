@@ -36,7 +36,7 @@ class Configuration(object):
 
 def main():
     np.seterr(all='raise')
-    config = Configuration(500, 100, 20, .05, .1, .02, np.random.randint(0, 2 ** 31 - 1))
+    config = Configuration(500, 100, 14, .05, .1, .06, np.random.randint(0, 2 ** 31 - 1))
     print(f"Config: {config}")
 
     curve_graphs = [
@@ -56,8 +56,8 @@ def main():
         return w
 
     zeros_with_orders = np.array(
-        ([(generate_zero(), 1) for _ in np.arange(0, 4)]
-         + [(generate_zero(), -1) for _ in np.arange(0, 4)])
+        ([(generate_zero(), 1) for _ in np.arange(0, 7)]
+         + [(generate_zero(), -1) for _ in np.arange(0, 7)])
     )
     print(f"Zeros with orders: {zeros_with_orders}")
 
@@ -76,8 +76,13 @@ def main():
 
     for idx in np.arange(0, config.num_iterations):
         plt.cla()
-        reverse = (idx // (config.num_iterations // 20)) % 2 == 1
-        for curve_graph in curve_graphs:
+        elev = ax.elev
+        azim = ax.azim
+        xmin, xmax = ax.get_xlim()
+        ymin, ymax = ax.get_ylim()
+        zmin, zmax = ax.get_zlim()
+        reverse = (idx // (config.num_iterations // 4)) % 2 == 0
+        for curve_graph_idx, curve_graph in enumerate(curve_graphs):
             for sphere_point, vec in curve_graph.get_points():
                 new_vec = np.empty(len(vec))
                 try:
@@ -101,14 +106,20 @@ def main():
                 [vec[1] for _, vec in curve_graph.get_points()],
                 [vec[2] for _, vec in curve_graph.get_points()]
             )
-            ax.plot(xs, ys, zs)
+            color = "black" if curve_graph_idx % 2 == 0 else "#8b0000"
+            ax.plot(xs, ys, zs, color)
 
-        for i, zero_with_order in enumerate(rational_flow.get_zeros_with_orders()):
-            zero, order = zero_with_order
-            zero_on_sphere = gu.inverse_stereographic_project(zero)
-            zero_x, zero_y, zero_z = gu.get_coordinates(zero_on_sphere)
-            ax.plot([zero_x], [zero_y], [zero_z])
-            ax.text(zero_x, zero_y, zero_z, f"z{i}:{int(order)}", "x")
+        # for i, zero_with_order in enumerate(rational_flow.get_zeros_with_orders()):
+        #     zero, order = zero_with_order
+        #     zero_on_sphere = gu.inverse_stereographic_project(zero)
+        #     zero_x, zero_y, zero_z = gu.get_coordinates(zero_on_sphere)
+        #     ax.plot([zero_x], [zero_y], [zero_z])
+        #     ax.text(zero_x, zero_y, zero_z, f"z{i}:{int(order)}", "x")
+
+        ax.view_init(elev, azim)
+        # ax.set_xlim(xmin, xmax)
+        # ax.set_ylim(ymin, ymax)
+        # ax.set_zlim(zmin, zmax)
 
         figure.canvas.draw()
 
